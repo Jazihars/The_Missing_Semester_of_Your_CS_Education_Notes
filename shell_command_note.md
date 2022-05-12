@@ -406,4 +406,176 @@ hello
 ```
 这表明，`>>`符号可以把一个内容附加给一个文件，而不是仅仅取代这个文件中的内容。
 
-从31:00开始看视频
+### pipe symbol
+我们接下来学习Linux中的pipe symbol（就是竖线符号`|`）。`|`符号的作用是：**把左边内容的输出作为右边内容的输入。**
+
+首先，我们来运行下述命令，获取根路径下的所有内容：
+``` bash
+ls -l /
+```
+得到了如下的输出：
+```
+total 2668
+lrwxrwxrwx.    1 root root       7 Jan 14 00:02 bin -> usr/bin
+dr-xr-xr-x.    5 root root    4096 May  5 10:00 boot
+drwxr-xr-x    21 root root    3460 May  5 10:02 dev
+drwxr-xr-x.  115 root root    8192 May 11 14:35 etc
+drwxr-xr-x     4 root root      47 Jan 18 18:06 home
+drwxrwxrwx    14 root root     228 May 10 12:38 bu
+lrwxrwxrwx.    1 root root       7 Jan 14 00:02 lib -> usr/lib
+lrwxrwxrwx.    1 root root       9 Jan 14 00:02 lib64 -> usr/lib64
+drwxr-xr-x.    2 root root       6 Apr 11  2018 media
+drwxr-xr-x.    4 root root      48 Mar 15 13:11 mnt
+drwxr-xr-x     2 root root    4096 Jan 17 15:13 op_scripts
+-rw-r--r--.    1 root root 2609034 Jan 14 17:56 op_scripts.tar.gz
+drwxr-xr-x.    3 root root      45 Jan 14 18:09 opt
+dr-xr-xr-x  1347 root root       0 May  5 09:59 proc
+dr-xr-x---.   11 root root    4096 May  9 15:48 root
+drwxr-xr-x    35 root root    1060 May  8 18:44 run
+lrwxrwxrwx.    1 root root       8 Jan 14 00:02 sbin -> usr/sbin
+drwxr-xr-x.    2 root root       6 Apr 11  2018 srv
+dr-xr-xr-x    13 root root       0 May 11 21:01 sys
+drwxr-xr-x     3 root root      19 Mar 17 13:19 titan
+drwxrwxrwt. 1515 root root   69632 May 12 19:13 tmp
+drwxr-xr-x.   14 root root     166 Jan 17 11:15 usr
+drwxr-xr-x.   20 root root     285 Mar 17 13:19 var
+```
+我们来思考一下，如果我们想要获得上述输出的最后一行，该怎么办？我们可以运行下述命令：
+``` bash
+ls -l / | tail -n1
+```
+得到了如下的输出：
+```
+drwxr-xr-x.   20 root root     285 Mar 17 13:19 var
+```
+可以看到，这正是上述根目录下的最后一条内容。
+
+我们还可以连续使用这种重定向。测试下述命令：
+``` bash
+ls -l / | tail -n1 > ls.txt
+cat ls.txt
+```
+这行命令的功能是把根路径下的内容的最后一行写入当前路径下一个名为`ls.txt`的文件中。我们也得到了下述输出：
+```
+drwxr-xr-x.   20 root root     285 Mar 17 13:19 var
+```
+
+我们再来尝试一些稍微复杂一点的例子。首先，运行下述命令：
+``` bash
+curl --head --silent google.com
+```
+得到了如下的输出：
+```
+HTTP/1.1 301 Moved Permanently
+Location: http://www.google.com/
+Content-Type: text/html; charset=UTF-8
+Date: Thu, 12 May 2022 11:32:11 GMT
+Expires: Sat, 11 Jun 2022 11:32:11 GMT
+Cache-Control: public, max-age=2592000
+Server: gws
+Content-Length: 219
+X-XSS-Protection: 0
+X-Frame-Options: SAMEORIGIN
+```
+注意：我需要在一台网络正常的机器上运行上述命令。如果我的Linux机器的网络状况不正常，则输出内容可能会不一样。
+上述输出内容是google.com的http头。我们接下来测试下述命令：
+``` bash
+curl --head --silent google.com | grep -i content-length
+```
+得到了如下的输出：
+```
+Content-Length: 219
+```
+Linux `grep` 命令用于查找文件里符合条件的字符串。`grep`命令的`-i`参数意为忽略字符的大小写。因此，上述命令查找出了包含`content-length`的内容。
+
+我们再来运行下述命令：
+``` bash
+curl --head --silent google.com | grep -i content-length | cut --delimiter=' ' -f2
+```
+得到了输出：
+```
+219
+```
+`cut`命令的`--delimiter=`参数用于自定义分隔符，`-f`与`-d`一起使用，指定显示哪个区域。
+
+## 最后的一些总结
+下面的命令：
+``` bash
+sudo su
+```
+用于切换到root用户，获得最大的权限。但是，一般不建议这样做。
+
+下述命令：
+``` bash
+cd /sys/
+```
+用于进入系统的内核部分。
+
+运行下述命令：
+``` bash
+echo $SHELL
+```
+得到了如下的输出：
+```
+/bin/bash
+```
+这说明，我目前使用的是bash这种类型的shell。再次强调：`echo`程序的功能是将该参数打印出来。
+
+## 练习题
+1.将以下内容一行一行地写入ls.txt文件：
+```
+#!/bin/sh
+curl --head --silent https://missing.csail.mit.edu
+```
+答案：依次运行下述命令：
+``` bash
+echo '#!/bin/sh' > ls.txt
+echo curl --head --silent https://missing.csail.mit.edu >> ls.txt
+```
+
+
+2.运行下述命令：
+``` bash
+curl --head --silent https://missing.csail.mit.edu > ls.txt
+```
+结果：`ls.txt`文件的内容变成了下述这样：
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 7991
+Server: GitHub.com
+Content-Type: text/html; charset=utf-8
+Last-Modified: Fri, 04 Mar 2022 17:03:44 GMT
+Access-Control-Allow-Origin: *
+ETag: "62224670-1f37"
+expires: Thu, 12 May 2022 12:27:14 GMT
+Cache-Control: max-age=600
+x-proxy-cache: MISS
+X-GitHub-Request-Id: 108C:6E3E:220FE0:2A1CCC:627CFACA
+Accept-Ranges: bytes
+Date: Thu, 12 May 2022 12:26:13 GMT
+Via: 1.1 varnish
+Age: 538
+X-Served-By: cache-bur-kbur8200074-BUR
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1652358373.306971,VS0,VE1
+Vary: Accept-Encoding
+X-Fastly-Request-ID: 78dc836ee26d90f30f23a73d82a237e32d99f35a
+
+
+```
+
+
+3.将`curl --head --silent https://missing.csail.mit.edu`命令的最后更改日期信息，写入主目录下的`last-modified.txt`的文件中。
+答案：运行下述命令：
+``` bash
+curl --head --silent https://missing.csail.mit.edu | grep -i last-modified > ~/last-modified.txt
+cat ~/last-modified.txt
+```
+终端里输出了如下的内容：
+```
+Last-Modified: Fri, 04 Mar 2022 17:03:44 GMT
+```
+
+至此，麻省理工学院《计算机教育中缺失的一课》的第一课shell就学习完了。
