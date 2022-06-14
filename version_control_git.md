@@ -72,3 +72,145 @@ type commit = struct {
 }
 ```
 这就是Git各个对象的类型和包含的内容。
+
+## git的实践——创建git仓库并添加文件
+接下来我们来实践git的操作。
+
+首先，在Linux终端里键入下述命令：
+``` bash
+git --version
+```
+得到了如下的输出：
+```
+git version 1.8.3.1
+```
+这就是我的Linux机器上安装的git的版本。
+
+接下来，在home路径下，依次运行下述命令：
+``` bash
+mkdir learngit
+cd learngit/
+pwd
+```
+得到了如下的输出：
+```
+/home/users/XXX/learngit
+```
+接下来运行下述命令：
+``` bash
+git init
+```
+得到了如下的输出：
+```
+Initialized empty Git repository in /home/users/XXX/learngit/.git/
+```
+`git init`命令的含义是：把当前路径`/learngit`变成一个git仓库。当把`/learngit`变成一个仓库后，我们运行`ls -a`命令，得到了如下的输出：
+```
+.  ..  .git
+```
+这就表明，当前路径`/learngit`已经变成了一个git仓库了。
+
+接下来，我们用`touch readme.txt`命令在当前路径`/learngit`下创建文本文件`readme.txt`。打开这个文本文件（我直接使用vscode打开了。当然完全可以使用vim来编辑），输入如下的内容：
+```
+Git is a version control system.
+Git is free software.
+```
+接下来我们把这个文本文件`readme.txt`添加到git仓库。首先，在Linux终端里运行下述命令：
+``` bash
+git add readme.txt
+```
+这条命令运行后没有任何显示消息，这就对了。Unix的哲学是**没有消息就是好消息**，说明添加成功。
+接下来运行下述命令：
+``` bash
+git commit -m "wrote a readme file"
+```
+输出了一些内容，表示已经成功提交。此时，我们再来运行下述命令：
+``` bash
+git status
+```
+得到了如下的输出：
+```
+# On branch master
+nothing to commit, working directory clean
+```
+`git status`命令的含义是：显示当前的仓库状态。
+
+如果我们要再往仓库里提交一个文件，我们可以做如下的实验。运行下述命令：
+``` bash
+echo "hello world" > hello.txt
+git status
+```
+得到了如下的输出：
+```
+# On branch master
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       hello.txt
+nothing added to commit but untracked files present (use "git add" to track)
+```
+此时`hello.txt`是一个未追踪的文件。我们再来运行下述命令：
+``` bash
+git add hello.txt
+git status
+```
+得到了如下的输出：
+```
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   hello.txt
+#
+```
+此时`hello.txt`变成了准备提交的状态。最后，我们运行下述命令：
+``` bash
+git commit -m "wrote hello.txt"
+```
+得到了如下的输出：
+```
+(省略一些内容)
+ 1 file changed, 1 insertion(+)
+ create mode 100644 hello.txt
+```
+此时再次运行下述命令：
+``` bash
+git status
+```
+得到了如下的输出：
+```
+# On branch master
+nothing to commit, working directory clean
+```
+这说明，我们已经成功提交了`hello.txt`文件到当前的`/learngit`仓库。此时，如果我们运行下述命令查看日志：
+``` bash
+git log
+```
+得到了如下的输出：
+```
+commit 0f3d14f865fcb18f04fc8cc00517b7737bc51e4c
+Author: XXX
+Date:   Tue Jun 14 21:36:11 2022 +0800
+
+    wrote hello.txt
+
+commit 33ee81f330e98cdd2766e2672fb5ac3950068e64
+Author: XXX
+Date:   Tue Jun 14 21:23:20 2022 +0800
+
+    wrote a readme file
+```
+这些日志显示了我刚才的提交记录。我们来运行下述命令查看我们的提交：
+``` bash
+git cat-file -p 0f3d14f865fcb18f04fc8cc00517b7737bc51e4c
+```
+得到了如下的输出：
+```
+tree 23f10711fb4ffe30a77d2febd4aa7bbe6c0cedbe
+parent 33ee81f330e98cdd2766e2672fb5ac3950068e64
+author XXX 1655213771 +0800
+committer XXX 1655213771 +0800
+
+wrote hello.txt
+```
+由此可知：`git cat-file -p <hash>`可以查看对应hash值的提交的详细信息。
