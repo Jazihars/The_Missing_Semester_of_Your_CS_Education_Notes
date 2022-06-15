@@ -213,4 +213,153 @@ committer XXX 1655213771 +0800
 
 wrote hello.txt
 ```
-由此可知：`git cat-file -p <hash>`可以查看对应hash值的提交的详细信息。
+由此可知：`git cat-file -p <hash>`可以查看对应hash值的提交的详细信息。如果我们再来运行下述命令（键入tree的hash值）：
+``` bash
+git cat-file -p c9099b9c93f05b733a5dddd6f8b26657758f0331
+```
+得到了如下的输出：
+```
+100644 blob d8036c15d7630cc6056052a2ec506483a7ce2d0a    readme.txt
+```
+这是tree提交的内容。我们再来运行下述命令查看具体的修改内容：
+``` bash
+git cat-file -p d8036c15d7630cc6056052a2ec506483a7ce2d0a
+```
+得到了如下输出：
+```
+Git is a version control system.
+Git is free software.
+```
+这就是对`readme.txt`文件的具体的修改内容。
+
+## 修改仓库中的文件
+我们对`/learngit/readme.txt`修改如下：
+```
+Git is a version control system.
+Git is free software.
+
+Tony love git!
+```
+此时，我们在Linux终端运行下述命令：
+``` bash
+git status
+```
+Linux终端里输出了下述内容：
+```
+# On branch master
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       modified:   readme.txt
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+这说明，我们仅仅是修改了`readme.txt`文件，还没有提交我们的修改。如果我们过了几周再查看文件，忘记我们的修改了，那我们该怎么办呢？我们可以在Linux终端里键入下述命令：
+``` bash
+git diff readme.txt
+```
+得到了如下的输出：
+```
+diff --git a/readme.txt b/readme.txt
+index d8036c1..5ced1d6 100644
+--- a/readme.txt
++++ b/readme.txt
+@@ -1,2 +1,4 @@
+ Git is a version control system.
+-Git is free software.
+\ No newline at end of file
++Git is free software.
++
++Tony love git!
+\ No newline at end of file
+```
+由此，我们对`readme.txt`文件做了哪些修改就一目了然了。此时，我们在Linux终端里运行下述命令：
+``` bash
+git add readme.txt
+git commit -m "add Tony love git"
+```
+如此就将我们的修改提交到了Git仓库`/learngit`。此时，运行下述命令查看git的状态：
+``` bash
+git status
+```
+得到了如下的输出：
+```
+# On branch master
+nothing to commit, working directory clean
+```
+这说明我们的修改都已经提交到了git仓库`/learngit`
+
+## 版本回退
+首先，我们在Linux终端里运行下述命令，查看我们的修改日志：
+``` bash
+git log
+```
+Linux终端里输出了下述内容：
+```
+commit 3d57ae76cd176fbef5345f85c132f1a69ab72f80
+Author: XXX
+Date:   Wed Jun 15 21:21:18 2022 +0800
+
+    add Tony love git
+
+commit 0f3d14f865fcb18f04fc8cc00517b7737bc51e4c
+Author: XXX
+Date:   Tue Jun 14 21:36:11 2022 +0800
+
+    wrote hello.txt
+
+commit 33ee81f330e98cdd2766e2672fb5ac3950068e64
+Author: XXX
+Date:   Tue Jun 14 21:23:20 2022 +0800
+
+    wrote a readme file
+```
+或者，我们可以在Linux终端里运行下述命令：
+``` bash
+git log --pretty=oneline
+```
+得到了如下的输出：
+```
+3d57ae76cd176fbef5345f85c132f1a69ab72f80 add Tony love git
+0f3d14f865fcb18f04fc8cc00517b7737bc51e4c wrote hello.txt
+33ee81f330e98cdd2766e2672fb5ac3950068e64 wrote a readme file
+```
+这是简化版的修改日志。
+
+此时，如果我们想回退到上一个仓库版本，只需运行下述命令：
+``` bash
+git reset --hard HEAD^
+```
+得到了如下的输出：
+```
+HEAD is now at 0f3d14f wrote hello.txt
+```
+此时，我们用`cat readme.txt`命令看一下`readme.txt`文件里的内容，可以看到，`readme.txt`文件里已经变成这个样子了：
+```
+Git is a version control system.
+Git is free software.
+```
+这说明我们已经回退到了上一个版本。如果我们想要取消我们的回退，继续恢复回退之前的版本，我们首先在Linux终端里运行下述命令：
+``` bash
+git reflog
+```
+得到了如下的输出：
+```
+0f3d14f HEAD@{0}: reset: moving to HEAD^
+3d57ae7 HEAD@{1}: commit: add Tony love git
+0f3d14f HEAD@{2}: commit: wrote hello.txt
+33ee81f HEAD@{3}: commit (initial): wrote a readme file
+```
+我们看到了我们的命令列表。我们接下来运行下述命令：
+``` bash
+git reset --hard 3d57ae7
+cat readme.txt
+```
+可以看到，`readme.txt`中已经恢复了如下的内容：
+```
+Git is a version control system.
+Git is free software.
+
+Tony love git!
+```
