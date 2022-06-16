@@ -363,3 +363,233 @@ Git is free software.
 
 Tony love git!
 ```
+
+## 撤销修改
+我们在`readme.txt`文件的最后随便添加一些修改，比如，增加几个字符。保存之后，此时在Linux终端里键入下述命令：
+``` bash
+git checkout -- readme.txt
+```
+再打开`readme.txt`文件查看，就可以发现我们刚刚做的修改已经被撤销了。这行命令可以撤销下面两种情况的修改：
+- 一种是`readme.txt`自修改后还没有被放到暂存区，现在，撤销修改就回到和版本库一模一样的状态；
+- 一种是`readme.txt`已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
+
+如果我们已经把修改提交到了暂存区，然后想要撤销修改了，这时该怎么办？我们可以先用下述命令把暂存区的修改回退到工作区：
+``` bash
+git reset HEAD readme.txt
+```
+然后再运行下述命令丢弃掉工作区的修改：
+``` bash
+git checkout -- readme.txt
+```
+此时在Linux终端运行`git status`命令，可以看到，已经没有要提交的修改了。
+
+## 删除文件
+如果我们想要删除文件`/learngit/hello.txt`该怎么办？我们当然可以直接在Linux终端运行下述命令：
+``` bash
+rm hello.txt
+```
+只不过，此时我们在Linux终端运行`git status`命令，可以看到如下的内容：
+```
+# On branch master
+# Changes not staged for commit:
+#   (use "git add/rm <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       deleted:    hello.txt
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+这说明，git已经知道我们删除了`hello.txt`文件，并且此时我们的删除还没有提交。如果我们想提交我们的删除，则需要在Linux终端运行下述命令：
+``` bash
+git rm hello.txt
+git commit -m "remove hello.txt"
+```
+现在，`hello.txt`文件就从我们的`/learngit`仓库中被删除了。
+
+另一种情况是，当我们`rm hello.txt`之后，发现是删错了，我们想要恢复文件。只需在Linux终端运行下述命令：
+``` bash
+git checkout -- hello.txt
+```
+
+## 在Github上同步远程仓库
+我们在Github上创建一个和本地完全一样名称的仓库`/Jazihars/learngit`。然后我们在本地的Linux终端`/learngit`路径下运行下述命令（我们已经在Github上添加了我们的Linux机器的SSH公钥）：
+``` bash
+echo "# learngit" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:Jazihars/learngit.git
+git push -u origin main
+```
+这样就可以把本地的仓库同步到Github上的远程仓库。
+
+虽然可以用上述这种方式来将文件推送到远程仓库。不过，强烈不建议实际操作的时候用这种方式来操作。强烈推荐的方式是：**先在Github上创建远程仓库，然后克隆到本地，再从本地推送文件到远程仓库。**
+
+## 分支管理——创建分支的目的
+接下来我们要进入git最犀利的部分了。首先明确一下，我们为什么要创建不同的分支？
+
+假设你准备开发一个新功能，但是需要两周才能完成，第一周你写了50%的代码，如果立刻提交，由于代码还没写完，不完整的代码库会导致别人不能干活了。如果等代码全部写完再一次提交，又存在丢失每天进度的巨大风险。
+
+现在有了分支，就不用怕了。你创建了一个属于你自己的分支，别人看不到，还继续在原来的分支上正常工作，而你在自己的分支上干活，想提交就提交，直到开发完毕后，再一次性合并到原来的分支上，这样，既安全，又不影响别人工作。
+
+这就是创建分支的目的
+
+## 创建与合并分支
+接下来的实验在Windows上进行。首先，在Powershell终端`/learngit`路径下键入下述命令：
+``` bash
+git checkout -b dev
+```
+得到了如下的输出：
+```
+Switched to a new branch 'dev'
+```
+此时我们运行下述命令查看当前分支：
+``` bash
+git branch
+```
+得到了如下的输出：
+```
+* dev
+  main
+```
+`git checkout`命令加上`-b`参数表示创建并切换。相当于同时运行下述的两条命令：
+``` bash
+git branch dev
+git checkout dev
+```
+如果我们给`/learngit/mytest.py`（注意：采用Linux下的目录记法`/`）文件添加一些修改，然后再运行下述命令提交：
+``` bash
+git add mytest.py
+git commit -m "modified mytest.py"
+git status
+```
+可以看到如下的内容：
+```
+On branch dev
+nothing to commit, working tree clean
+```
+可以看到，我们已经在dev分支上提交了我们的修改。接下来，我们切换到main分支。运行下述命令：
+``` bash
+git checkout main
+```
+此时可以看一下，main分支上的`/learngit/mytest.py`文件仍然是空的。接下来，运行下述命令把dev分支上的修改合并到main分支上：
+``` bash
+git merge dev
+```
+此时，main分支上的`/learngit/mytest.py`文件就已经变成刚才dev分支上修改的样子了。接下来运行下述命令删除dev分支：
+``` bash
+git branch -d dev
+```
+再次运行下述命令查看当前的分支情况：
+``` bash
+git branch
+```
+得到了如下的输出：
+```
+* main
+```
+可以看到，目前只有main分支了。此时，可以使用`git push`命令将本地的修改推送到Github远程仓库。
+
+因为创建、合并和删除分支非常快，所以Git鼓励你使用分支完成某个任务，合并后再删掉分支，这和直接在main分支上工作效果是一样的，但过程更安全。
+
+目前，最新版本的git支持下述命令来创建并切换到新的dev分支：
+``` bash
+git switch -c dev
+```
+直接切换到已有的master分支，可以使用：
+``` bash
+git switch master
+```
+更多关于分支的命令，参见廖雪峰的教程[创建与合并分支](https://www.liaoxuefeng.com/wiki/896043488029600/900003767775424)
+
+## 解决分支合并中的冲突
+首先，我们创建并切换到新的feature1分支。在终端里运行下述命令：
+``` bash
+git switch -c feature1
+```
+在当前的feature1分支里，修改`/learngit/mytest.py`文件的内容如下：
+``` python
+import torch
+
+print("1+1=2")
+```
+我们在feature1分支上提交我们的修改。运行下述命令：
+``` bash
+git add mytest.py
+git commit -m "modified mytest.py 1+1=2"
+```
+接下来我们切换到main分支。运行下述命令：
+``` bash
+git switch main
+```
+在main分支里，将`/learngit/mytest.py`文件的内容修改成下面这样：
+``` python
+import torch
+
+print("1+1=3")
+```
+我们在main分支也提交对`/learngit/mytest.py`的修改。运行下述命令：
+``` bash
+git add mytest.py
+git commit -m "modified mytest.py 1+1=3"
+```
+接下来我们在main分支下运行下述命令：
+``` bash
+git merge feature1
+```
+得到了如下的输出：
+```
+Auto-merging mytest.py
+CONFLICT (content): Merge conflict in mytest.py
+Automatic merge failed; fix conflicts and then commit the result.
+```
+果然，无法快速合并分支。因为发生了分支合并的冲突。此时在main分支之下，我们打开`/learngit/mytest.py`文件看一下，里面的内容如下：
+``` python
+import torch
+
+<<<<<<< HEAD
+print("1+1=3")
+=======
+print("1+1=2")
+>>>>>>> feature1
+
+```
+此时我们来解决一下这个分支合并的冲突。在main分支下，将`/learngit/mytest.py`文件的内容修改如下（我们保留feature1分支所做的修改）：
+``` python
+import torch
+
+print("1+1=2")
+```
+接下来我们在main分支下运行下述提交修改的命令：
+``` bash
+git add mytest.py  
+git commit -m "modified mytest.py at main"
+```
+此时，就可以在终端里运行下述命令，把我们的修改提交给远程仓库了：
+``` bash
+git push
+```
+
+接下来我们看一下修改日志。在终端里运行下述命令：
+``` bash
+git log --graph --pretty=oneline --abbrev-commit
+```
+得到了如下的输出：
+```
+*   81c775b (HEAD -> main, origin/main) modified mytest.py at main
+|\
+| * a10031f (feature1) modified mytest.py 1+1=2
+* | 6e21805 modified mytest.py 1+1=3
+|/
+* c8edd44 modified mytest.py
+* a09c1e5 modified README.md
+* e514884 my second commit
+* 071440c first commit
+```
+由此，我们的修改过程一目了然了。我们接下来在终端里运行下述命令删除feature1分支：
+``` bash
+git branch -d feature1
+```
+大功告成！我们的分支合并操作就完成了。
+
