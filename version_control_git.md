@@ -593,3 +593,167 @@ git branch -d feature1
 ```
 大功告成！我们的分支合并操作就完成了。
 
+接下来我们删除本地和Github上的learngit仓库，重新在Github上创建一个learngit仓库，然后我们clone这个learngit仓库到本地。在本地的终端里运行下述命令：
+``` bash
+git clone git@github.com:Jazihars/learngit.git
+```
+我们首先看一下我们在哪个分支上。在本地的终端里键入下述命令：
+``` bash
+git branch
+```
+终端里输出了下述内容：
+``` bash
+* main
+```
+这说明，我们目前在main分支上。我们创建一个新的dev分支。在本地的终端里键入下述命令：
+``` bash
+git switch -c dev
+```
+在dev分支下，创建`/learngit/mytest.py`文件，在`/learngit/mytest.py`文件中键入下述代码：
+``` python
+import torch
+
+print("我在dev分支")
+```
+然后我们在dev分支下提交`/learngit/mytest.py`代码。在终端里键入下述命令：
+``` bash
+git add mytest.py
+git commit -m "commit mytest.py at dev"
+git push -u origin dev
+```
+最后一条命令运行时，终端里输出了下述内容：
+```
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 312 bytes | 104.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0        
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+remote: 
+remote: Create a pull request for 'dev' on GitHub by visiting:
+remote:      https://github.com/Jazihars/learngit/pull/new/dev
+remote:
+To github.com:Jazihars/learngit.git
+ * [new branch]      dev -> dev
+branch 'dev' set up to track 'origin/dev'.
+```
+参考[git push官方文档](https://git-scm.com/docs/git-push)，`git push -u`中的`-u`参数与`--set-upstream`含义相同。
+这说明，我们在远程Github仓库中创建了一个dev分支。我们可以在Github仓库`learngit`中把这个提交合并到main分支。这个部分在Github远程仓库中操作即可，用浏览器的图形界面来操作。
+
+我们在本地的dev分支上进行第二次提交。将`/learngit/mytest.py`修改如下：
+``` python
+import torch
+
+print("我在dev分支")
+
+print("在dev分支上第二次提交")
+```
+接下来就可以在本地的终端里进行第二次提交了，还是提交到远程的dev分支。在本地的终端里运行下述命令：
+``` bash
+git add mytest.py
+git commit -m "second commit of mytest.py at dev"
+git push
+```
+现在我们可以再次在Github上用图形用户界面来把我们刚刚提交到learngit仓库dev分支上的修改合并到learngit仓库main分支上了。这个合并过程和刚才几乎一样，就是一些图形用户界面的操作，这里就不详述了。合并到main分支之后，我们的两个commit就都是`behind main`的了。合并之前，是`ahead main`的状态。
+
+还有一点需要注意。合并分支时，加上`--no-ff`参数就可以用普通模式合并，合并后的历史有分支，能看出来曾经做过合并，而`fast forward`合并就看不出来曾经做过合并。比如，我们来进行下面的实验。我们在dev分支上把`/learngit/mytest.py`修改为下面的内容：
+``` python
+import torch
+
+print("我在dev分支")
+
+print("在dev分支上第二次提交")
+
+print("在dev分支上测试--no-ff合并")
+```
+然后我们提交这个修改到dev分支。在终端里运行下述命令：
+``` bash
+git add mytest.py
+git commit -m "test --no-ff commit"
+```
+接下来我们在本地切换到main分支。在终端里键入下述命令：
+``` bash
+git switch main
+```
+接下来我们在本地把dev分支合并到main分支，用`--no-ff`合并方式。在终端里运行下述命令：
+``` bash
+git merge --no-ff -m "merge with no-ff" dev
+```
+终端里输出了下述内容：
+```
+Merge made by the 'ort' strategy.
+ mytest.py | 7 +++++++
+ 1 file changed, 7 insertions(+)
+ create mode 100644 mytest.py
+```
+最后，在终端里运行下述命令，查看日志：
+``` bash
+git log --graph --pretty=oneline --abbrev-commit
+```
+终端里输出了如下的内容：
+```
+*   c7e6d23 (HEAD -> main) merge with no-ff
+|\
+| * 7673b5d (dev) test --no-ff commit
+| * a17d20e (origin/dev) second commit of mytest.py at dev
+| * 3ca9230 commit mytest.py at dev
+|/
+* 312519c Initial commit
+```
+这就是我们的提交日志。我们此时可以在终端里把我们的提交推送到远程Github仓库。在终端里键入下述命令：
+``` bash
+git switch dev
+git push
+```
+终端里输出了如下的内容：
+```
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 343 bytes | 114.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0        
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To github.com:Jazihars/learngit.git
+   a17d20e..7673b5d  dev -> dev
+```
+我们已经把我们的修改成功推送到了远程Github仓库的dev分支。之后，我们会学习如何直接在本地把我们的修改合并到远程仓库的main分支。目前我们暂且满足于在浏览器上使用图形用户界面来将dev分支合并到main分支。
+
+至此，关于Github的分支操作，我们已经比较熟悉了。下面来谈谈实际操作时的经验。
+
+## Github分支管理实际经验
+在实际开发中，我们应该按照以下几个基本原则进行分支管理：
+- 首先，master分支应该是非常稳定的，也就是仅用来发布新版本，平时不能在上面干活；
+- 那在哪干活呢？干活都在dev分支上，也就是说，dev分支是不稳定的，到某个时候，比如1.0版本发布时，再把dev分支合并到master上，在master分支发布1.0版本；
+- 你和你的小伙伴们每个人都在dev分支上干活，每个人都有自己的分支，时不时地往dev分支上合并就可以了。
+
+这些就是我们在实际使用git/Github时的经验。我们应当遵循这些规则来进行实际的开发。
+
+## 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 向Github提交代码的测试
+我们用[廖雪峰老师的learngit仓库](https://github.com/michaelliao/learngit)测试一下向Github开源仓库提交代码。首先，我们Fork[廖雪峰老师的learngit仓库](https://github.com/michaelliao/learngit)。然后clone到本地。在本地的终端里运行下述命令：
+``` bash
+git clone git@github.com:Jazihars/learngit.git
+```
