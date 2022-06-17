@@ -9,7 +9,7 @@
 - 当前模块是谁编写的？
 - 这个文件的这一行是什么时候被编辑的？是谁作出的修改？修改原因是什么呢？
 - 最近的1000个版本中，何时/为什么导致了单元测试失败？
-- 
+
 尽管版本控制系统有很多，其事实上的标准则是`Git`
 
 ## Git的数据模型
@@ -730,30 +730,119 @@ To github.com:Jazihars/learngit.git
 
 这些就是我们在实际使用git/Github时的经验。我们应当遵循这些规则来进行实际的开发。
 
-## 
+## 修复bug的分支
+软件开发中，bug就像家常便饭一样。有了bug就需要修复，在Git中，由于分支是如此的强大，所以，每个bug都可以通过一个新的临时分支来修复，修复后，合并分支，然后将临时分支删除。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 向Github提交代码的测试
-我们用[廖雪峰老师的learngit仓库](https://github.com/michaelliao/learngit)测试一下向Github开源仓库提交代码。首先，我们Fork[廖雪峰老师的learngit仓库](https://github.com/michaelliao/learngit)。然后clone到本地。在本地的终端里运行下述命令：
-``` bash
-git clone git@github.com:Jazihars/learngit.git
+比如，我们来举个例子。当你接到一个修复一个代号101的bug的任务时，很自然地，你想创建一个分支issue-101来修复它，但是，等等，当前正在dev上进行的工作还没有提交。我们来人工构造这个场景。在main分支下创建文件`/learngit/bug.py`，在这个文件里输入如下的代码：
+``` python
+print("这里有一个待修复的bug")
 ```
+然后把这个文件提交给main分支。
+
+在dev分支下，向`/learngit/mytest.py`中追加代码，最后`/learngit/mytest.py`中的代码如下：
+``` python
+import torch
+
+print("我在dev分支")
+
+print("在dev分支上第二次提交")
+
+print("在dev分支上测试--no-ff合并")
+
+print("未完成的工作")
+```
+接下来我们在dev分支下在终端里运行下述命令：
+``` bash
+git status
+```
+终端里输出了下述的内容：
+```
+On branch dev
+Your branch is up to date with 'origin/dev'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   mytest.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+这个时候，并不是我们不想提交dev分支下`/learngit/mytest.py`的内容，而是工作只进行到一半，还没法提交，预计完成还需1天时间。但是，必须在两个小时内修复main分支上的bug（意即，提交对main分支上的`/learngit/bug.py`的修改），我们该怎么办？
+
+我们首先在dev分支下把当前工作隐藏起来。在dev分支下在终端里运行下述命令：
+``` bash
+git stash
+```
+终端里输出了下述内容：
+```
+Saved working directory and index state WIP on dev: 7673b5d test --no-ff commit
+```
+然后我们查看一下当前的状态。我们在终端里运行下述代码：
+``` bash
+git status
+```
+终端里输出了下述内容：
+```
+On branch dev
+Your branch is up to date with 'origin/dev'.
+
+nothing to commit, working tree clean
+```
+此时就没有需要提交的内容了。接下来我们可以放心地去修复main分支上的bug了。此时我们在dev分支下，我们在终端里运行下述命令：
+``` bash
+git switch main
+git switch -c fix-01-bug
+```
+接下来在fix-01-bug分支下，把bug.py中的内容修改如下：
+``` python
+print("这里有一个待修复的bug，但是我们已经修复好了！")
+```
+此时我们在分支fix-01-bug下，我们在终端里运行下述命令：
+``` bash
+git add bug.py
+git commit -m "fixed bugs in bug.py"
+git switch main
+git merge --no-ff -m "merged bugs fix in bug.py" fix-01-bug
+git branch -d fix-01-bug
+git push（把修改后的bug.py推送到远程仓库）
+```
+接下来我们回到dev分支上继续工作。目前在main分支下，在终端里运行下述命令：
+``` bash
+git switch dev
+git stash list（查看当前隐藏的工作）
+git stash pop
+git stash list（再次查看当前隐藏的工作，已经没有东西了）
+```
+接下来可以在dev分支继续完成我们的工作。在dev分支下修改`mytest.py`的内容如下：
+``` python
+import torch
+
+print("我在dev分支")
+
+print("在dev分支上第二次提交")
+
+print("在dev分支上测试--no-ff合并")
+
+print("未完成的工作，已经完成！")
+```
+然后在dev分支下在终端里运行下述命令：
+``` bash
+git add mytest.py
+git commit -m "job has been finished"
+git push
+```
+然后在浏览器里用图形用户界面的方式把dev分支上的1个ahead的commit合并到main分支即可。
+
+此处还有一个任务，是把main分支上修复好的bug复制到dev分支。这个实验先不做了，实际遇到的时候去查即可。用`git cherry-pick`命令。
+
+还有一些提示。开发一个新feature，最好新建一个分支；如果要丢弃一个没有被合并过的分支，可以通过`git branch -D <name>`强行删除。这些实验都不做了。遇到的时候去查即可。
+
+## 多人协作开发
+这部分内容先不做了，参见[廖雪峰多人协作教程](https://www.liaoxuefeng.com/wiki/896043488029600/900375748016320)
+
+## 给commit打标签
+这部分也不做了，参见参见[廖雪峰标签管理教程](https://www.liaoxuefeng.com/wiki/896043488029600/900788941487552)
+
+---
+
+至此，关于Git的学习告一段落。之后遇到不会的用法再去查即可。
